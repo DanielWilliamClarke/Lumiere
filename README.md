@@ -11,7 +11,7 @@ go build
 
 # Docker build Lumiere
 # In project root
-docker build -t lumiere-svc .
+docker build -t lumiere .
 ```
 
 ## Test
@@ -37,7 +37,7 @@ start chrome ../test_results/index.html
 
 ## Docker Compose
 
-To easily run both server and database together docker-compose can connect both server and database containers in a simple bridge network
+To easily run both server and database together, docker-compose can connect both server and database containers in a simple bridge network
 
 ```bash
 # Build and run
@@ -48,7 +48,7 @@ docker-compose up --build
 docker-compose up
 
 # Once both server and database are ready
-curl localhost:3000/v1/api/svcstatus
+curl localhost:5000/v1/api/svcstatus
 # ...
 Ok
 ```
