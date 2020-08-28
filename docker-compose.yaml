@@ -1,0 +1,36 @@
+version: "3.6"
+
+services:
+  server:
+    build: .
+    container_name: lumiere
+    image: lumiere
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongo
+    networks:
+      - mongodb
+    env_file:
+      - .env
+    environment:
+      - MONGO_HOST=mongo # override the mongo host
+
+  mongo:
+    container_name: mongo
+    image: mongo
+    volumes:
+      - mongodb:/data/db
+      - ./mongo/setup.js:/docker-entrypoint-initdb.d/mongo-setup.js:ro
+    networks:
+      - mongodb
+    ports:
+      - "27017:27017"
+    env_file:
+      - ./mongo/.env
+
+volumes:
+  mongodb:
+
+networks:
+  mongodb:
