@@ -26,6 +26,7 @@ const users = Array(5)
           from: "0", // 0 here as stand in for the system
           to: userID.toString(),
           amount: 1000,
+          date: new Date().toISOString(),
         },
       ],
     };

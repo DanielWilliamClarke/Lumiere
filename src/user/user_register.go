@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/gofiber/fiber"
 
@@ -69,6 +70,7 @@ func (a UserRegisterRoute) Post(c *fiber.Ctx) {
 				Amount: body.Cash,
 				To:     userID,
 				From:   "system",
+				Date:   time.Now().Format("2006.01.02 15:04:05"),
 			},
 		},
 	})

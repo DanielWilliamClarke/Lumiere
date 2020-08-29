@@ -54,7 +54,8 @@ func main() {
 		}.Post)
 
 	api.Group("/account", user.UserAuthMiddleware{DataAccess: client}.Auth).
-		Get("/balance", account.AccountBalanceRoute{DataAccess: client}.Get)
+		Get("/balance", account.AccountBalanceRoute{DataAccess: client}.GetBalance).
+		Get("/transactions", account.AccountBalanceRoute{DataAccess: client}.GetTransactions)
 
 	err = app.Listen(config.Port)
 	if err != nil {

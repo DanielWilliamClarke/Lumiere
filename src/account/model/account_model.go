@@ -16,4 +16,5 @@ type Transaction struct {
 	Amount float64 `bson:"amount",json:"amount"`
 	To     string  `bson:"to",json:"to"`
 	From   string  `bson:"from",json:"from"`
+	Date   string  `bson:"date",json:"date"`
 }

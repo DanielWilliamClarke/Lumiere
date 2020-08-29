@@ -11,5 +11,6 @@ require (
 	github.com/golang/mock v1.4.4
 	github.com/jstemmer/go-junit-report v0.9.1 // indirect
 	github.com/matm/gocov-html v0.0.0-20200509184451-71874e2e203b // indirect
+	github.com/ulule/deepcopier v0.0.0-20200430083143-45decc6639b6
 	go.mongodb.org/mongo-driver v1.4.0
 )
