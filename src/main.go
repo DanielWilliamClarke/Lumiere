@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber"
 	"github.com/gofiber/logger"
 
+	"dwc.com/lumiere/account"
 	"dwc.com/lumiere/mongo"
 )
 
@@ -30,17 +31,22 @@ func main() {
 	}
 
 	// Connect to mongo
-	_, err = mongoConfig.Connect("data")
+	collection, err := mongoConfig.Connect("accounts")
 	if err != nil {
-		log.Fatalf("%+v\n", err)
+		log.Fatalf("%v\n", err)
+	}
+	client := mongo.MongoClient{
+		Conn: collection,
 	}
 
 	// Set up API
 	app := fiber.New()
 	api := app.Group("/v1/api", logger.New())
-	api.Put("/svcstatus", func(c *fiber.Ctx) {
-		c.Status(200).Send("Ok")
-	})
+
+	api.Get("/svcstatus", func(c *fiber.Ctx) { c.Status(200).Send("Ok") })
+	api.Post("/register", account.AccountRegisterRoute{DataAccess: client}.Post)
+
+	api.Get("/balance", account.AccountRegisterRoute{DataAccess: client}.Post)
 
 	err = app.Listen(config.Port)
 	if err != nil {

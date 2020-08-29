@@ -8,7 +8,7 @@ go get -u github.com/matm/gocov-html
 OUTPUT_DIR=./../test_results
 
 # Run tests and generate coverage
-go test -v -coverpkg=$(go list ./... | grep -v "test" | awk '{print $1}' | paste -s -d ,) -coverprofile=$OUTPUT_DIR/coverage.txt -covermode=atomic ./test/... > $OUTPUT_DIR/results.txt
+go test -v -coverpkg=$(go list ./... | grep -v "test" | grep -v "mocks" | awk '{print $1}' | paste -s -d ,) -coverprofile=$OUTPUT_DIR/coverage.txt -covermode=atomic ./test/... > $OUTPUT_DIR/results.txt
 
 cat $OUTPUT_DIR/results.txt
 

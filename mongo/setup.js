@@ -4,13 +4,31 @@ db.createUser({
   pwd: "123456",
   roles: [
     {
-      role: "read",
+      role: "readWrite",
       db: "app",
     },
   ],
 });
 
 // Create collection
-db.createCollection("data");
+db.createCollection("accounts");
 
-// Create base data
+const users = Array(5)
+  .fill({})
+  .map((_, index) => {
+    userID = index + 1;
+    return {
+      id: userID,
+      name: "user" + userID,
+      credential: Math.random().toString(36).substring(6),
+      transactions: [
+        {
+          from: 0, // 0 here as stand in for the system
+          to: userID,
+          amount: 1000,
+        },
+      ],
+    };
+  });
+
+db.accounts.insertMany(users);

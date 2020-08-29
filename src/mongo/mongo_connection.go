@@ -17,6 +17,7 @@ type MongoConfig struct {
 	Database string `env:"MONGO_DATABASE,required"`
 }
 
+// Connect connects to a mongo db instance via url and env var credentials
 func (m MongoConfig) Connect(collectionName string) (*mongo.Collection, error) {
 
 	// Set client options
@@ -39,4 +40,24 @@ func (m MongoConfig) Connect(collectionName string) (*mongo.Collection, error) {
 	log.Println("Connected to MongoDB!")
 	collection := client.Database(m.Database).Collection(collectionName)
 	return collection, nil
+}
+
+type IMongoClient interface {
+	FindOne(ctx context.Context, filter interface{}, data interface{}) error
+	InsertOne(ctx context.Context, data interface{}) (interface{}, error)
+}
+
+type MongoClient struct {
+	Conn *mongo.Collection
+}
+
+// FindOne wraps mongo driver method FindOne
+func (m MongoClient) FindOne(ctx context.Context, filter interface{}, data interface{}) error {
+	return m.Conn.FindOne(ctx, filter).Decode(data)
+}
+
+// InsertOne wraps mongo driver method InsertOne
+func (m MongoClient) InsertOne(ctx context.Context, data interface{}) (interface{}, error) {
+	res, err := m.Conn.InsertOne(ctx, data)
+	return res.InsertedID, err
 }
