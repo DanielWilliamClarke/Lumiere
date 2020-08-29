@@ -15,21 +15,17 @@ type UserAuthMiddleware struct {
 	DataAccess lMongo.IMongoClient
 }
 
-type UserCodeBody struct {
-	UserCode string `json:"userCode",form:"userCode"`
-}
-
 func (u UserAuthMiddleware) Auth(c *fiber.Ctx) {
 
-	body := &UserCodeBody{}
-	if err := c.BodyParser(body); err != nil {
-		log.Printf("Could not parse request user code: %v", err)
+	auth := c.Get("Authorization")
+	if len(auth) == 0 {
+		log.Printf("User authorization not present in header")
 		c.Status(403).Send("User not Authorized")
 		return
 	}
 
 	account := &model.Account{}
-	err := u.DataAccess.FindOne(context.Background(), bson.M{"credential": body.UserCode}, account)
+	err := u.DataAccess.FindOne(context.Background(), bson.M{"credential": auth}, account)
 	if err != nil {
 		log.Printf("User does not exist with given usercode: %v", err)
 		c.Status(403).Send("User not Authorized")

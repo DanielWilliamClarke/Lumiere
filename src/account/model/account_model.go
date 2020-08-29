@@ -8,7 +8,7 @@ type Account struct {
 	M_ID         primitive.ObjectID `bson:"_id,omitempty",json:"_id"`
 	ID           string             `bson:"id,omitempty",json:"id"`
 	Name         string             `bson:"name",json:"name"`
-	UserCode     string             `bson:"userCode",json:"userCode"`
+	Credential   string             `bson:"credential",json:"credential"`
 	Transactions []Transaction      `bson:"transactions",json:"transactions"`
 }
 

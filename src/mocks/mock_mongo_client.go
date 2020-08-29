@@ -2,7 +2,7 @@
 // Source: ./mongo/mongo_connection.go
 
 // Package mock_mongo is a generated GoMock package.
-package mock_mongo
+package mocks
 
 import (
 	context "context"

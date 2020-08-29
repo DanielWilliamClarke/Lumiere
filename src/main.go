@@ -10,6 +10,7 @@ import (
 	"dwc.com/lumiere/account"
 	"dwc.com/lumiere/mongo"
 	"dwc.com/lumiere/user"
+	"dwc.com/lumiere/utils"
 )
 
 type serverConfig struct {
@@ -47,7 +48,10 @@ func main() {
 	api.Get("/svcstatus", func(c *fiber.Ctx) { c.Status(200).Send("Ok") })
 
 	api.Group("/user").
-		Post("/register", user.UserRegisterRoute{DataAccess: client}.Post)
+		Post("/register", user.UserRegisterRoute{
+			DataAccess: client,
+			Generator:  utils.CodeGenerator{},
+		}.Post)
 
 	api.Group("/account", user.UserAuthMiddleware{DataAccess: client}.Auth).
 		Get("/balance", account.AccountBalanceRoute{DataAccess: client}.Get)

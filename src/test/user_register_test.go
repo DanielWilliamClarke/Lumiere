@@ -15,19 +15,25 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 
 	"dwc.com/lumiere/account/model"
-	mock_mongo "dwc.com/lumiere/mocks"
-	lMongo "dwc.com/lumiere/mongo"
+	"dwc.com/lumiere/mocks"
 	"dwc.com/lumiere/user"
 )
 
-func RunTest(mockClient lMongo.IMongoClient, body []byte) *http.Response {
+func RunRegisterTest(mocks registerMocks, body []byte) *http.Response {
+
+	// Test fiber routing logic with
+	// https://docs.gofiber.io/app#test
+
 	// Create request
 	req := httptest.NewRequest("POST", "http://localhost:5000", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	// Setup Test router
 	app := fiber.New()
-	app.Post("/", user.UserRegisterRoute{DataAccess: mockClient}.Post)
+	app.Post("/", user.UserRegisterRoute{
+		DataAccess: mocks.mockClient,
+		Generator:  mocks.mockGenerator,
+	}.Post)
 
 	// Run Test
 	resp, _ := app.Test(req)
@@ -35,21 +41,67 @@ func RunTest(mockClient lMongo.IMongoClient, body []byte) *http.Response {
 	return resp
 }
 
-func ConfigureMocks(t *testing.T, findError error, insertError error) (*mock_mongo.MockIMongoClient, *gomock.Controller) {
+type registerMocks struct {
+	mockClient    *mocks.MockIMongoClient
+	mockGenerator *mocks.MockICodeGenerator
+	ctrl          *gomock.Controller
+}
 
-	ctrl := gomock.NewController(t)
-	mockClient := mock_mongo.NewMockIMongoClient(ctrl)
+type registerMockConfig struct {
+	t               *testing.T
+	findError       error
+	insertError     error
+	totalFindCalls  int
+	generatorErrors []error
+}
+
+func ConfigureRegisterMocks(config registerMockConfig) registerMocks {
+
+	ctrl := gomock.NewController(config.t)
+
+	mockClient := mocks.NewMockIMongoClient(ctrl)
+	mockGenerator := mocks.NewMockICodeGenerator(ctrl)
 
 	mockClient.EXPECT().
 		FindOne(
 			gomock.AssignableToTypeOf(context.Background()),
 			gomock.AssignableToTypeOf(bson.M{}),
 			gomock.AssignableToTypeOf(&model.Account{})).
-		Times(1).
-		Return(findError)
+		Times(config.totalFindCalls).
+		Return(config.findError)
 
+	// Set up generator expectations
+	generatorWillError := false
+	if config.findError != nil {
+		generatorCalls := make([]*gomock.Call, 0)
+		for _, err := range config.generatorErrors {
+
+			code := "test-code"
+			if err != nil {
+				generatorWillError = true
+				code = ""
+			}
+
+			generatorCalls = append(generatorCalls, mockGenerator.EXPECT().
+				Generate(gomock.AssignableToTypeOf(0)).
+				Times(1).
+				Return(code, err))
+
+			// Sorry - if the an error appears then we wont be calling generate any more times
+			if err != nil {
+				break
+			}
+		}
+		gomock.InOrder(generatorCalls...)
+	} else {
+		mockGenerator.EXPECT().
+			Generate(gomock.AssignableToTypeOf(0)).
+			Times(0)
+	}
+
+	// If generator will error we will not be inserting
 	totalInsertCalls := 1
-	if findError == nil {
+	if config.findError == nil || generatorWillError {
 		totalInsertCalls = 0
 	}
 
@@ -58,18 +110,23 @@ func ConfigureMocks(t *testing.T, findError error, insertError error) (*mock_mon
 			gomock.AssignableToTypeOf(context.Background()),
 			gomock.AssignableToTypeOf([]byte{})).
 		Times(totalInsertCalls).
-		Return(nil, insertError)
+		Return(nil, config.insertError)
 
-	return mockClient, ctrl
+	return registerMocks{mockClient, mockGenerator, ctrl}
 }
 
-func Test_AccountCanBeRegistered(t *testing.T) {
+func Test_UserCanBeRegistered(t *testing.T) {
 
 	// Test fiber routing logic with
 	// https://docs.gofiber.io/app#test
-
-	mockClient, ctrl := ConfigureMocks(t, errors.New("No data found"), nil)
-	defer ctrl.Finish()
+	mocks := ConfigureRegisterMocks(registerMockConfig{
+		t:               t,
+		findError:       errors.New("No data found"),
+		insertError:     nil,
+		totalFindCalls:  1,
+		generatorErrors: []error{nil, nil},
+	})
+	defer mocks.ctrl.Finish()
 
 	body, err := json.Marshal(user.RegisterBody{
 		Username: "test",
@@ -79,16 +136,23 @@ func Test_AccountCanBeRegistered(t *testing.T) {
 		t.Errorf("Could not marshal body: %v", err)
 	}
 
-	resp := RunTest(mockClient, body)
+	resp := RunRegisterTest(mocks, body)
 	if resp.StatusCode != 200 {
 		t.Error("Expected status 200")
 	}
 }
 
-func Test_AccountInsertFails(t *testing.T) {
+func Test_UserInsertFails(t *testing.T) {
 
-	mockClient, ctrl := ConfigureMocks(t, errors.New("No data found"), errors.New("Fake insert failure"))
-	defer ctrl.Finish()
+	mocks := ConfigureRegisterMocks(registerMockConfig{
+		t:               t,
+		findError:       errors.New("No data found"),
+		insertError:     errors.New("Fake insert failure"),
+		totalFindCalls:  1,
+		generatorErrors: []error{nil, nil},
+	})
+
+	defer mocks.ctrl.Finish()
 
 	body, err := json.Marshal(user.RegisterBody{
 		Username: "test",
@@ -98,16 +162,22 @@ func Test_AccountInsertFails(t *testing.T) {
 		t.Errorf("Could not marshal body: %v", err)
 	}
 
-	resp := RunTest(mockClient, body)
+	resp := RunRegisterTest(mocks, body)
 	if resp.StatusCode != 500 {
 		t.Error("Expected status 500")
 	}
 }
 
-func Test_AccountFindFails(t *testing.T) {
+func Test_UserFindFails(t *testing.T) {
 
-	mockClient, ctrl := ConfigureMocks(t, nil, nil)
-	defer ctrl.Finish()
+	mocks := ConfigureRegisterMocks(registerMockConfig{
+		t:               t,
+		findError:       nil,
+		insertError:     nil,
+		totalFindCalls:  1,
+		generatorErrors: []error{nil, nil},
+	})
+	defer mocks.ctrl.Finish()
 
 	body, err := json.Marshal(user.RegisterBody{
 		Username: "test",
@@ -117,7 +187,74 @@ func Test_AccountFindFails(t *testing.T) {
 		t.Errorf("Could not marshal body: %v", err)
 	}
 
-	resp := RunTest(mockClient, body)
+	resp := RunRegisterTest(mocks, body)
+	if resp.StatusCode != 500 {
+		t.Error("Expected status 500")
+	}
+}
+
+func Test_UserCantBeRegisteredIfUserInputIsInvalid(t *testing.T) {
+
+	mocks := ConfigureRegisterMocks(registerMockConfig{
+		t:               t,
+		findError:       nil,
+		insertError:     nil,
+		totalFindCalls:  0,
+		generatorErrors: []error{nil, nil},
+	})
+	defer mocks.ctrl.Finish()
+
+	resp := RunRegisterTest(mocks, []byte{})
+	if resp.StatusCode != 500 {
+		t.Error("Expected status 500")
+	}
+}
+
+func Test_UserIDGenerationFails(t *testing.T) {
+
+	mocks := ConfigureRegisterMocks(registerMockConfig{
+		t:               t,
+		findError:       errors.New("No data found"),
+		insertError:     nil,
+		totalFindCalls:  1,
+		generatorErrors: []error{nil, errors.New("user id generation failure")},
+	})
+	defer mocks.ctrl.Finish()
+
+	body, err := json.Marshal(user.RegisterBody{
+		Username: "test",
+		Cash:     100,
+	})
+	if err != nil {
+		t.Errorf("Could not marshal body: %v", err)
+	}
+
+	resp := RunRegisterTest(mocks, body)
+	if resp.StatusCode != 500 {
+		t.Error("Expected status 500")
+	}
+}
+
+func Test_UserCodeGenerationFails(t *testing.T) {
+
+	mocks := ConfigureRegisterMocks(registerMockConfig{
+		t:               t,
+		findError:       errors.New("No data found"),
+		insertError:     nil,
+		totalFindCalls:  1,
+		generatorErrors: []error{errors.New("user code generation failure"), nil},
+	})
+	defer mocks.ctrl.Finish()
+
+	body, err := json.Marshal(user.RegisterBody{
+		Username: "test",
+		Cash:     100,
+	})
+	if err != nil {
+		t.Errorf("Could not marshal body: %v", err)
+	}
+
+	resp := RunRegisterTest(mocks, body)
 	if resp.StatusCode != 500 {
 		t.Error("Expected status 500")
 	}

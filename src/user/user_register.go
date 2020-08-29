@@ -15,12 +15,13 @@ import (
 
 type UserRegisterRoute struct {
 	DataAccess lMongo.IMongoClient
+	Generator  utils.ICodeGenerator
 }
 
 type registerOutput struct {
-	UserID   string `json:"userID"`
-	Username string `json:"username"`
-	UserCode string `json:"usercode"`
+	UserID     string `json:"userID"`
+	Username   string `json:"username"`
+	Credential string `json:"credential"`
 }
 
 type RegisterBody struct {
@@ -45,14 +46,14 @@ func (a UserRegisterRoute) Post(c *fiber.Ctx) {
 		return
 	}
 
-	userCode, err := utils.GenerateUID(10)
+	auth, err := a.Generator.Generate(16)
 	if err != nil {
 		log.Printf("Could not generate user code: %v", err)
 		c.Status(500).Send("Could not register user")
 		return
 	}
 
-	userID, err := utils.GenerateUID(5)
+	userID, err := a.Generator.Generate(5)
 	if err != nil {
 		log.Printf("Could not generate user ID: %v", err)
 		c.Status(500).Send("Could not register user")
@@ -60,9 +61,9 @@ func (a UserRegisterRoute) Post(c *fiber.Ctx) {
 	}
 
 	data, err := bson.Marshal(&model.Account{
-		ID:       userID,
-		Name:     body.Username,
-		UserCode: userCode,
+		ID:         userID,
+		Name:       body.Username,
+		Credential: auth,
 		Transactions: []model.Transaction{
 			model.Transaction{
 				Amount: body.Cash,
@@ -85,8 +86,8 @@ func (a UserRegisterRoute) Post(c *fiber.Ctx) {
 	}
 
 	c.Status(200).JSON(registerOutput{
-		UserID:   userID,
-		Username: body.Username,
-		UserCode: userCode,
+		UserID:     userID,
+		Username:   body.Username,
+		Credential: auth,
 	})
 }
