@@ -17,8 +17,3 @@ type Transaction struct {
 	To     string  `bson:"to",json:"to"`
 	From   string  `bson:"from",json:"from"`
 }
-
-type RegisterBody struct {
-	Username string  `json:"username",form:"username"`
-	Cash     float64 `json:"cash",form:"cash"`
-}

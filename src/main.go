@@ -9,6 +9,7 @@ import (
 
 	"dwc.com/lumiere/account"
 	"dwc.com/lumiere/mongo"
+	"dwc.com/lumiere/user"
 )
 
 type serverConfig struct {
@@ -44,9 +45,12 @@ func main() {
 	api := app.Group("/v1/api", logger.New())
 
 	api.Get("/svcstatus", func(c *fiber.Ctx) { c.Status(200).Send("Ok") })
-	api.Post("/register", account.AccountRegisterRoute{DataAccess: client}.Post)
 
-	api.Get("/balance", account.AccountRegisterRoute{DataAccess: client}.Post)
+	api.Group("/user").
+		Post("/register", user.UserRegisterRoute{DataAccess: client}.Post)
+
+	api.Group("/account", user.UserAuthMiddleware{DataAccess: client}.Auth).
+		Get("/balance", account.AccountBalanceRoute{DataAccess: client}.Get)
 
 	err = app.Listen(config.Port)
 	if err != nil {

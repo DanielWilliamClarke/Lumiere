@@ -18,13 +18,13 @@ const users = Array(5)
   .map((_, index) => {
     userID = index + 1;
     return {
-      id: userID,
+      id: userID.toString(),
       name: "user" + userID,
       credential: Math.random().toString(36).substring(6),
       transactions: [
         {
-          from: 0, // 0 here as stand in for the system
-          to: userID,
+          from: "0", // 0 here as stand in for the system
+          to: userID.toString(),
           amount: 1000,
         },
       ],

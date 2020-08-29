@@ -14,10 +14,10 @@ import (
 	"github.com/gofiber/fiber"
 	"go.mongodb.org/mongo-driver/bson"
 
-	"dwc.com/lumiere/account"
 	"dwc.com/lumiere/account/model"
 	mock_mongo "dwc.com/lumiere/mocks"
 	lMongo "dwc.com/lumiere/mongo"
+	"dwc.com/lumiere/user"
 )
 
 func RunTest(mockClient lMongo.IMongoClient, body []byte) *http.Response {
@@ -27,7 +27,7 @@ func RunTest(mockClient lMongo.IMongoClient, body []byte) *http.Response {
 
 	// Setup Test router
 	app := fiber.New()
-	app.Post("/", account.AccountRegisterRoute{DataAccess: mockClient}.Post)
+	app.Post("/", user.UserRegisterRoute{DataAccess: mockClient}.Post)
 
 	// Run Test
 	resp, _ := app.Test(req)
@@ -43,7 +43,7 @@ func ConfigureMocks(t *testing.T, findError error, insertError error) (*mock_mon
 	mockClient.EXPECT().
 		FindOne(
 			gomock.AssignableToTypeOf(context.Background()),
-			gomock.AssignableToTypeOf(bson.D{}),
+			gomock.AssignableToTypeOf(bson.M{}),
 			gomock.AssignableToTypeOf(&model.Account{})).
 		Times(1).
 		Return(findError)
@@ -71,7 +71,7 @@ func Test_AccountCanBeRegistered(t *testing.T) {
 	mockClient, ctrl := ConfigureMocks(t, errors.New("No data found"), nil)
 	defer ctrl.Finish()
 
-	body, err := json.Marshal(model.RegisterBody{
+	body, err := json.Marshal(user.RegisterBody{
 		Username: "test",
 		Cash:     100,
 	})
@@ -90,7 +90,7 @@ func Test_AccountInsertFails(t *testing.T) {
 	mockClient, ctrl := ConfigureMocks(t, errors.New("No data found"), errors.New("Fake insert failure"))
 	defer ctrl.Finish()
 
-	body, err := json.Marshal(model.RegisterBody{
+	body, err := json.Marshal(user.RegisterBody{
 		Username: "test",
 		Cash:     100,
 	})
@@ -109,7 +109,7 @@ func Test_AccountFindFails(t *testing.T) {
 	mockClient, ctrl := ConfigureMocks(t, nil, nil)
 	defer ctrl.Finish()
 
-	body, err := json.Marshal(model.RegisterBody{
+	body, err := json.Marshal(user.RegisterBody{
 		Username: "test",
 		Cash:     100,
 	})

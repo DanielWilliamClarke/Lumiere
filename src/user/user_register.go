@@ -1,4 +1,4 @@
-package account
+package user
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	"dwc.com/lumiere/utils"
 )
 
-type AccountRegisterRoute struct {
+type UserRegisterRoute struct {
 	DataAccess lMongo.IMongoClient
 }
 
@@ -23,9 +23,14 @@ type registerOutput struct {
 	UserCode string `json:"usercode"`
 }
 
-func (a AccountRegisterRoute) Post(c *fiber.Ctx) {
+type RegisterBody struct {
+	Username string  `json:"username",form:"username"`
+	Cash     float64 `json:"cash",form:"cash"`
+}
 
-	body := &model.RegisterBody{}
+func (a UserRegisterRoute) Post(c *fiber.Ctx) {
+
+	body := &RegisterBody{}
 	if err := c.BodyParser(body); err != nil {
 		log.Printf("Could not parse request body: %v", err)
 		c.Status(500).Send("Request Invalid")
@@ -33,7 +38,7 @@ func (a AccountRegisterRoute) Post(c *fiber.Ctx) {
 	}
 
 	account := &model.Account{}
-	err := a.DataAccess.FindOne(context.Background(), bson.D{{"name", body.Username}}, account)
+	err := a.DataAccess.FindOne(context.Background(), bson.M{"name": body.Username}, account)
 	if err == nil {
 		log.Printf("User already exists: %v", err)
 		c.Status(500).Send("User already exists with that user name")
