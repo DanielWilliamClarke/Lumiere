@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/gofiber/fiber"
@@ -35,7 +36,7 @@ func (a UserRegisterRoute) Post(c *fiber.Ctx) {
 	body := &RegisterBody{}
 	if err := c.BodyParser(body); err != nil {
 		log.Printf("Could not parse request body: %v", err)
-		c.Status(500).Send("Request Invalid")
+		c.Status(http.StatusBadRequest).Send("Request Invalid")
 		return
 	}
 
@@ -43,21 +44,21 @@ func (a UserRegisterRoute) Post(c *fiber.Ctx) {
 	err := a.DataAccess.FindOne(context.Background(), bson.M{"name": body.Username}, account)
 	if err == nil {
 		log.Printf("User already exists: %v", err)
-		c.Status(500).Send("User already exists with that user name")
+		c.Status(http.StatusNoContent).Send("User already exists with that user name")
 		return
 	}
 
 	auth, err := a.Generator.Generate(16)
 	if err != nil {
 		log.Printf("Could not generate user code: %v", err)
-		c.Status(500).Send("Could not register user")
+		c.Status(http.StatusInternalServerError).Send("Could not register user")
 		return
 	}
 
 	userID, err := a.Generator.Generate(5)
 	if err != nil {
 		log.Printf("Could not generate user ID: %v", err)
-		c.Status(500).Send("Could not register user")
+		c.Status(http.StatusInternalServerError).Send("Could not register user")
 		return
 	}
 
@@ -76,18 +77,18 @@ func (a UserRegisterRoute) Post(c *fiber.Ctx) {
 	})
 	if err != nil {
 		log.Printf("User malformed: %v", err)
-		c.Status(500).Send("Could not generate user")
+		c.Status(http.StatusInternalServerError).Send("Could not generate user")
 		return
 	}
 
 	_, err = a.DataAccess.InsertOne(context.Background(), data)
 	if err != nil {
 		log.Printf("Could not insert user: %v", err)
-		c.Status(500).Send("Could not insert user")
+		c.Status(http.StatusInternalServerError).Send("Could not insert user")
 		return
 	}
 
-	c.Status(200).JSON(registerOutput{
+	c.Status(http.StatusOK).JSON(registerOutput{
 		UserID:     userID,
 		Username:   body.Username,
 		Credential: auth,

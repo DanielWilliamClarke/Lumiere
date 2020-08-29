@@ -61,3 +61,31 @@ func (mr *MockIMongoClientMockRecorder) InsertOne(ctx, data interface{}) *gomock
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertOne", reflect.TypeOf((*MockIMongoClient)(nil).InsertOne), ctx, data)
 }
+
+// UpdateOne mocks base method
+func (m *MockIMongoClient) UpdateOne(ctx context.Context, filter, update interface{}) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateOne", ctx, filter, update)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateOne indicates an expected call of UpdateOne
+func (mr *MockIMongoClientMockRecorder) UpdateOne(ctx, filter, update interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOne", reflect.TypeOf((*MockIMongoClient)(nil).UpdateOne), ctx, filter, update)
+}
+
+// StartTransaction mocks base method
+func (m *MockIMongoClient) StartTransaction(ctx context.Context, callback func() error) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "StartTransaction", ctx, callback)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// StartTransaction indicates an expected call of StartTransaction
+func (mr *MockIMongoClientMockRecorder) StartTransaction(ctx, callback interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartTransaction", reflect.TypeOf((*MockIMongoClient)(nil).StartTransaction), ctx, callback)
+}

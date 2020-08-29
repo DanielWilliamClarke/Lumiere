@@ -32,6 +32,6 @@ func (u UserAuthMiddleware) Auth(c *fiber.Ctx) {
 		return
 	}
 
-	c.Locals("AuthUser", account.M_ID)
+	c.Locals("AuthedAccount", account)
 	c.Next()
 }

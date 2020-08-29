@@ -137,7 +137,7 @@ func Test_UserCanBeRegistered(t *testing.T) {
 	}
 
 	resp := RunRegisterTest(mocks, body)
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		t.Error("Expected status 200")
 	}
 }
@@ -163,7 +163,7 @@ func Test_UserInsertFails(t *testing.T) {
 	}
 
 	resp := RunRegisterTest(mocks, body)
-	if resp.StatusCode != 500 {
+	if resp.StatusCode != http.StatusInternalServerError {
 		t.Error("Expected status 500")
 	}
 }
@@ -188,8 +188,8 @@ func Test_UserFindFails(t *testing.T) {
 	}
 
 	resp := RunRegisterTest(mocks, body)
-	if resp.StatusCode != 500 {
-		t.Error("Expected status 500")
+	if resp.StatusCode != http.StatusNoContent {
+		t.Error("Expected status 204")
 	}
 }
 
@@ -205,8 +205,8 @@ func Test_UserCantBeRegisteredIfUserInputIsInvalid(t *testing.T) {
 	defer mocks.ctrl.Finish()
 
 	resp := RunRegisterTest(mocks, []byte{})
-	if resp.StatusCode != 500 {
-		t.Error("Expected status 500")
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Error("Expected status 400")
 	}
 }
 
@@ -230,7 +230,7 @@ func Test_UserIDGenerationFails(t *testing.T) {
 	}
 
 	resp := RunRegisterTest(mocks, body)
-	if resp.StatusCode != 500 {
+	if resp.StatusCode != http.StatusInternalServerError {
 		t.Error("Expected status 500")
 	}
 }
@@ -255,7 +255,7 @@ func Test_UserCodeGenerationFails(t *testing.T) {
 	}
 
 	resp := RunRegisterTest(mocks, body)
-	if resp.StatusCode != 500 {
+	if resp.StatusCode != http.StatusInternalServerError {
 		t.Error("Expected status 500")
 	}
 }

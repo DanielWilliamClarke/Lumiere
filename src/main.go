@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/caarlos0/env/v6"
 	"github.com/gofiber/fiber"
@@ -33,29 +34,33 @@ func main() {
 	}
 
 	// Connect to mongo
-	collection, err := mongoConfig.Connect("accounts")
+	client, collection, err := mongoConfig.Connect("accounts")
 	if err != nil {
 		log.Fatalf("%v\n", err)
 	}
-	client := mongo.MongoClient{
-		Conn: collection,
+	mongoClient := mongo.MongoClient{
+		Client: client,
+		Conn:   collection,
 	}
 
 	// Set up API
 	app := fiber.New()
 	api := app.Group("/v1/api", logger.New())
 
-	api.Get("/svcstatus", func(c *fiber.Ctx) { c.Status(200).Send("Ok") })
+	api.Get("/svcstatus", func(c *fiber.Ctx) { c.Status(http.StatusOK).Send("Ok") })
 
-	api.Group("/user").
+	api.
+		Group("/user").
 		Post("/register", user.UserRegisterRoute{
-			DataAccess: client,
+			DataAccess: mongoClient,
 			Generator:  utils.CodeGenerator{},
 		}.Post)
 
-	api.Group("/account", user.UserAuthMiddleware{DataAccess: client}.Auth).
-		Get("/balance", account.AccountBalanceRoute{DataAccess: client}.GetBalance).
-		Get("/transactions", account.AccountBalanceRoute{DataAccess: client}.GetTransactions)
+	api.
+		Group("/account", user.UserAuthMiddleware{DataAccess: mongoClient}.Auth).
+		Get("/balance", account.AccountBalanceRoute{}.GetBalance).
+		Get("/transactions", account.AccountBalanceRoute{}.GetTransactions).
+		Put("/transfer", account.AccountTransferRoute{DataAccess: mongoClient}.PutTransfer)
 
 	err = app.Listen(config.Port)
 	if err != nil {
