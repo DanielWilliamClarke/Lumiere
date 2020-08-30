@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -47,9 +48,18 @@ func RunTransferTest(mockClient lMongo.IMongoClient, authedAccount interface{}, 
 	return resp
 }
 
-func ConfigureTransferMocks(t *testing.T, findData interface{}, findError error, totalCalls int) (*mock_mongo.MockIMongoClient, *gomock.Controller) {
+type transferMockConfig struct {
+	t              *testing.T
+	findError      error
+	findData       interface{}
+	totalFindCalls int
+	unaryTransfer  bool
+	updateErrors   []error
+}
 
-	ctrl := gomock.NewController(t)
+func ConfigureTransferMocks(config transferMockConfig) (*mock_mongo.MockIMongoClient, *gomock.Controller) {
+
+	ctrl := gomock.NewController(config.t)
 	mockClient := mocks.NewMockIMongoClient(ctrl)
 
 	mockClient.EXPECT().
@@ -57,30 +67,57 @@ func ConfigureTransferMocks(t *testing.T, findData interface{}, findError error,
 			gomock.AssignableToTypeOf(context.Background()),
 			gomock.AssignableToTypeOf(bson.M{}),
 			gomock.AssignableToTypeOf(&model.Account{})).
-		Times(totalCalls).
+		Times(config.totalFindCalls).
 		DoAndReturn(func(ctx context.Context, filter interface{}, data interface{}) error {
-			if findData != nil {
-				deepcopier.Copy(findData).To(data)
+			if config.findData != nil {
+				deepcopier.Copy(config.findData).To(data)
 			}
-			return findError
+			return config.findError
 		})
 
-	mockClient.EXPECT().
-		UpdateOne(
-			gomock.AssignableToTypeOf(context.Background()),
-			gomock.AssignableToTypeOf(bson.M{}),
-			gomock.AssignableToTypeOf(bson.D{})).
-		Times(2).
-		Return(nil)
+	if config.totalFindCalls > 0 && config.findError == nil && !config.unaryTransfer {
 
-	mockClient.EXPECT().
-		StartTransaction(
-			gomock.AssignableToTypeOf(context.Background()),
-			gomock.AssignableToTypeOf(func() error { return nil })).
-		Times(1).
-		DoAndReturn(func(ctx context.Context, callback func() error) error {
-			return callback()
-		})
+		mockClient.EXPECT().
+			StartTransaction(
+				gomock.AssignableToTypeOf(context.Background()),
+				gomock.AssignableToTypeOf(func() error { return nil })).
+			Times(1).
+			DoAndReturn(func(ctx context.Context, callback func() error) error {
+				return callback()
+			})
+
+		updateCalls := make([]*gomock.Call, 0)
+		for _, err := range config.updateErrors {
+
+			updateCalls = append(updateCalls, mockClient.EXPECT().
+				UpdateOne(
+					gomock.AssignableToTypeOf(context.Background()),
+					gomock.AssignableToTypeOf(bson.M{}),
+					gomock.AssignableToTypeOf(bson.D{})).
+				Times(1).
+				Return(err))
+
+			// Sorry - if the an error appears then we wont be calling update any more times
+			if err != nil {
+				break
+			}
+		}
+		gomock.InOrder(updateCalls...)
+
+	} else {
+		mockClient.EXPECT().
+			StartTransaction(
+				gomock.AssignableToTypeOf(context.Background()),
+				gomock.AssignableToTypeOf(func() error { return nil })).
+			Times(0)
+
+		mockClient.EXPECT().
+			UpdateOne(
+				gomock.AssignableToTypeOf(context.Background()),
+				gomock.AssignableToTypeOf(bson.M{}),
+				gomock.AssignableToTypeOf(bson.D{})).
+			Times(0)
+	}
 
 	return mockClient, ctrl
 }
@@ -106,7 +143,14 @@ func Test_AccountTransferSucceeds(t *testing.T) {
 	fromAccount := CreateDummyTransferAccountDate(1)
 	toAccount := CreateDummyTransferAccountDate(2)
 
-	mockClient, ctrl := ConfigureTransferMocks(t, toAccount, nil, 1)
+	mockClient, ctrl := ConfigureTransferMocks(transferMockConfig{
+		t:              t,
+		findError:      nil,
+		findData:       toAccount,
+		totalFindCalls: 1,
+		unaryTransfer:  false,
+		updateErrors:   []error{nil, nil},
+	})
 	defer ctrl.Finish()
 
 	body, err := json.Marshal(user.RegisterBody{
@@ -120,5 +164,155 @@ func Test_AccountTransferSucceeds(t *testing.T) {
 	resp := RunTransferTest(mockClient, fromAccount, body)
 	if resp.StatusCode != 200 {
 		t.Error("Expected status 200")
+	}
+}
+
+func Test_AccountTransferFailsOnReceiptientUpdate(t *testing.T) {
+	fromAccount := CreateDummyTransferAccountDate(1)
+	toAccount := CreateDummyTransferAccountDate(2)
+
+	mockClient, ctrl := ConfigureTransferMocks(transferMockConfig{
+		t:              t,
+		findError:      nil,
+		findData:       toAccount,
+		totalFindCalls: 1,
+		unaryTransfer:  false,
+		updateErrors:   []error{nil, errors.New("to account transaction failure")},
+	})
+	defer ctrl.Finish()
+
+	body, err := json.Marshal(user.RegisterBody{
+		Username: "test",
+		Cash:     100,
+	})
+	if err != nil {
+		t.Errorf("Could not marshal body: %v", err)
+	}
+
+	resp := RunTransferTest(mockClient, fromAccount, body)
+	if resp.StatusCode != 500 {
+		t.Error("Expected status 500")
+	}
+}
+
+func Test_AccountTransferFailsOnCurrentUserUpdate(t *testing.T) {
+	fromAccount := CreateDummyTransferAccountDate(1)
+	toAccount := CreateDummyTransferAccountDate(2)
+
+	mockClient, ctrl := ConfigureTransferMocks(transferMockConfig{
+		t:              t,
+		findError:      nil,
+		findData:       toAccount,
+		totalFindCalls: 1,
+		unaryTransfer:  false,
+		updateErrors:   []error{errors.New("from account transaction failure"), nil},
+	})
+	defer ctrl.Finish()
+
+	body, err := json.Marshal(user.RegisterBody{
+		Username: "test",
+		Cash:     100,
+	})
+	if err != nil {
+		t.Errorf("Could not marshal body: %v", err)
+	}
+
+	resp := RunTransferTest(mockClient, fromAccount, body)
+	if resp.StatusCode != 500 {
+		t.Error("Expected status 500")
+	}
+}
+
+func Test_AccountTransferFailsOnReceiptientFetch(t *testing.T) {
+	fromAccount := CreateDummyTransferAccountDate(1)
+	toAccount := CreateDummyTransferAccountDate(2)
+
+	mockClient, ctrl := ConfigureTransferMocks(transferMockConfig{
+		t:              t,
+		findError:      errors.New("fake find error"),
+		findData:       toAccount,
+		totalFindCalls: 1,
+		unaryTransfer:  false,
+		updateErrors:   []error{nil, nil},
+	})
+	defer ctrl.Finish()
+
+	body, err := json.Marshal(user.RegisterBody{
+		Username: "test",
+		Cash:     100,
+	})
+	if err != nil {
+		t.Errorf("Could not marshal body: %v", err)
+	}
+
+	resp := RunTransferTest(mockClient, fromAccount, body)
+	if resp.StatusCode != 404 {
+		t.Error("Expected status 404")
+	}
+}
+
+func Test_AccountTransferFailsOnUnaryTransfer(t *testing.T) {
+	fromAccount := CreateDummyTransferAccountDate(1)
+
+	mockClient, ctrl := ConfigureTransferMocks(transferMockConfig{
+		t:              t,
+		findError:      nil,
+		findData:       fromAccount,
+		totalFindCalls: 1,
+		unaryTransfer:  true,
+		updateErrors:   []error{nil, nil},
+	})
+	defer ctrl.Finish()
+
+	body, err := json.Marshal(user.RegisterBody{
+		Username: "test",
+		Cash:     100,
+	})
+	if err != nil {
+		t.Errorf("Could not marshal body: %v", err)
+	}
+
+	resp := RunTransferTest(mockClient, fromAccount, body)
+	if resp.StatusCode != 404 {
+		t.Error("Expected status 404")
+	}
+}
+
+func Test_AccountTransferFailsOnBodyParse(t *testing.T) {
+	fromAccount := CreateDummyTransferAccountDate(1)
+	toAccount := CreateDummyTransferAccountDate(2)
+
+	mockClient, ctrl := ConfigureTransferMocks(transferMockConfig{
+		t:              t,
+		findError:      nil,
+		findData:       toAccount,
+		totalFindCalls: 0,
+		unaryTransfer:  false,
+		updateErrors:   []error{nil, nil},
+	})
+	defer ctrl.Finish()
+
+	resp := RunTransferTest(mockClient, fromAccount, []byte{})
+	if resp.StatusCode != 400 {
+		t.Error("Expected status 400")
+	}
+}
+
+func Test_AccountTransferFailsAuthAccountNil(t *testing.T) {
+	toAccount := CreateDummyTransferAccountDate(2)
+
+	mockClient, ctrl := ConfigureTransferMocks(transferMockConfig{
+		t:              t,
+		findError:      nil,
+		findData:       toAccount,
+		totalFindCalls: 0,
+		unaryTransfer:  false,
+		updateErrors:   []error{nil, nil},
+	})
+	defer ctrl.Finish()
+
+	resp := RunTransferTest(mockClient, nil, []byte{})
+	if resp.StatusCode != 500 {
+		t.Error("Expected status 500")
 	}
 }
