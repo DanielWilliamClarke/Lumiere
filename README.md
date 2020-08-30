@@ -52,3 +52,46 @@ curl localhost:5000/v1/api/svcstatus
 # ...
 Ok
 ```
+
+## Using the API
+
+### Registering as a user
+
+```bash
+# using this endpoint to operate the API is optional
+curl -X POST localhost:5000/v1/api/user/register \
+  -d '{"username": "new_user_x", "amount":100000}' \
+  -H 'Content-Type: application/json'
+# ...
+{"userID":"21632","username":"new_user_x","credential":"new_credential_code"}
+```
+
+### Reading Balance
+
+```bash
+# One must pass an Authorization header to auth with the API
+curl -X GET localhost:5000/v1/api/account/balance -H 'Authorization: new_credential_code'
+# ...
+new_user_x your current balance at 2020.08.30 08:17:18 is $1000000.00
+```
+
+### Showing Transactions
+
+```bash
+# One must pass an Authorization header to auth with the API
+curl -X GET localhost:5000/v1/api/account/transactions -H 'Authorization: new_credential_code'
+# ...
+[{"Amount":1000000,"To":"21632","From":"system","Date":"2020.08.30 08:15:08"}]
+```
+
+### Transfer to other user
+
+```bash
+# One must pass an Authorization header to auth with the API
+curl -X PUT localhost:5000/v1/api/account/transfer \
+  -H 'Authorization: new_credential_code' \
+  -H 'Content-Type: application/json' \
+  -d '{"to": "user5", "amount":250}'
+# ...
+[{"Amount":1000000,"To":"21632","From":"system","Date":"2020.08.30 08:15:08"}]
+```
