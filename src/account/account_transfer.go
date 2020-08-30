@@ -20,8 +20,9 @@ type AccountTransferRoute struct {
 }
 
 type TransferBody struct {
-	To     string  `json:"to",form:"to"`
-	Amount float64 `json:"amount",form:"amount"`
+	To      string  `json:"to",form:"to"`
+	Amount  float64 `json:"amount",form:"amount"`
+	Message string  `json:"message",form:"message"`
 }
 
 func (a AccountTransferRoute) PutTransfer(c *fiber.Ctx) {
@@ -51,7 +52,7 @@ func (a AccountTransferRoute) PutTransfer(c *fiber.Ctx) {
 	}
 
 	// Perform update in transaction so we can rollback all changes if any error occurs here
-	err = a.safeTransfer(ctx, authedAccount, receiptient, body.Amount)
+	err = a.safeTransfer(ctx, authedAccount, receiptient, body)
 	if err != nil {
 		log.Printf("Account transfer failed: %v", err)
 		c.Status(http.StatusInternalServerError).Send("Internal server error")
@@ -93,12 +94,12 @@ func (a AccountTransferRoute) getReceiptient(ctx context.Context, receiptientNam
 	return receiptient, nil
 }
 
-func (a AccountTransferRoute) safeTransfer(ctx context.Context, authedAccount *model.Account, receiptient *model.Account, amount float64) error {
+func (a AccountTransferRoute) safeTransfer(ctx context.Context, authedAccount *model.Account, receiptient *model.Account, body *TransferBody) error {
 	return a.DataAccess.StartTransaction(ctx, func() error {
 
 		err := a.DataAccess.UpdateOne(ctx,
 			bson.M{"_id": authedAccount.M_ID},
-			a.createTransactionUpdate(authedAccount, receiptient, -amount))
+			a.createTransactionUpdate(authedAccount, receiptient, -body.Amount, body.Message))
 		if err != nil {
 			log.Printf("Unable to update [from] account transactions: %v", err)
 			return err
@@ -106,7 +107,7 @@ func (a AccountTransferRoute) safeTransfer(ctx context.Context, authedAccount *m
 
 		err = a.DataAccess.UpdateOne(ctx,
 			bson.M{"_id": receiptient.M_ID},
-			a.createTransactionUpdate(authedAccount, receiptient, amount))
+			a.createTransactionUpdate(authedAccount, receiptient, body.Amount, body.Message))
 		if err != nil {
 			log.Printf("Unable to update [to] account transactions: %v", err)
 			return err
@@ -116,14 +117,15 @@ func (a AccountTransferRoute) safeTransfer(ctx context.Context, authedAccount *m
 	})
 }
 
-func (a AccountTransferRoute) createTransactionUpdate(authedAccount *model.Account, receiptient *model.Account, amount float64) bson.D {
+func (a AccountTransferRoute) createTransactionUpdate(authedAccount *model.Account, receiptient *model.Account, amount float64, message string) bson.D {
 	return bson.D{
 		{"$addToSet",
 			bson.M{"transactions": model.Transaction{
-				Amount: amount,
-				From:   authedAccount.ID,
-				To:     receiptient.ID,
-				Date:   time.Now().Format("2006.01.02 15:04:05"),
+				Amount:  amount,
+				From:    authedAccount.ID,
+				To:      receiptient.ID,
+				Date:    time.Now().Format("2006.01.02 15:04:05"),
+				Message: message,
 			}},
 		}}
 }

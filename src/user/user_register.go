@@ -68,10 +68,11 @@ func (a UserRegisterRoute) Post(c *fiber.Ctx) {
 		Credential: auth,
 		Transactions: []model.Transaction{
 			model.Transaction{
-				Amount: body.Cash,
-				To:     userID,
-				From:   "system",
-				Date:   time.Now().Format("2006.01.02 15:04:05"),
+				Amount:  body.Cash,
+				To:      userID,
+				From:    "system",
+				Date:    time.Now().Format("2006.01.02 15:04:05"),
+				Message: "Initial funds",
 			},
 		},
 	})

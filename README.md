@@ -55,13 +55,25 @@ Ok
 
 ## Using the API
 
-### Registering as a user
+**Upon initial deployment the system contains 5 NPC users:**
+
+| Username | Credential |
+| -------- | ---------- |
+| user1    | auth1      |
+| user2    | auth2      |
+| user3    | auth3      |
+| user4    | auth4      |
+| user5    | auth5      |
+
+**To auth with the service you must pass the Credential in the `Authorization` header**
+
+### Registering a new user
 
 ```bash
 # using this endpoint to operate the API is optional
 curl -X POST localhost:5000/v1/api/user/register \
-  -d '{"username": "new_user_x", "amount":100000}' \
-  -H 'Content-Type: application/json'
+  -H 'Content-Type: application/json' \
+  -d '{"username": "new_user_x", "amount":100000}'
 # ...
 {"userID":"21632","username":"new_user_x","credential":"new_credential_code"}
 ```
@@ -81,17 +93,19 @@ new_user_x your current balance at 2020.08.30 08:17:18 is $1000000.00
 # One must pass an Authorization header to auth with the API
 curl -X GET localhost:5000/v1/api/account/transactions -H 'Authorization: new_credential_code'
 # ...
-[{"Amount":1000000,"To":"21632","From":"system","Date":"2020.08.30 08:15:08"}]
+[{"Amount":1000000,"To":"21632","From":"system","Date":"2020.08.30 08:15:08", "message": "Initial funds"}]
 ```
 
 ### Transfer to other user
+
+A user may transfer between any users in the system (except themselves)
 
 ```bash
 # One must pass an Authorization header to auth with the API
 curl -X PUT localhost:5000/v1/api/account/transfer \
   -H 'Authorization: new_credential_code' \
   -H 'Content-Type: application/json' \
-  -d '{"to": "user5", "amount":250}'
+  -d '{"to": "user5", "amount":250, "message": "from me to you!"}'
 # ...
 new_user_x your transfer of $250.00 at 2020.08.30 08:10:47 to user5 is complete
 ```

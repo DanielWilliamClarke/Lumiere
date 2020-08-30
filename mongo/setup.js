@@ -20,13 +20,14 @@ const users = Array(5)
     return {
       id: userID.toString(),
       name: "user" + userID,
-      credential: Math.random().toString(36).substring(6),
+      credential: "auth" + userID,
       transactions: [
         {
-          from: "0", // 0 here as stand in for the system
+          from: "system",
           to: userID.toString(),
           amount: 1000,
           date: new Date().toISOString(),
+          message: "Initial funds",
         },
       ],
     };
