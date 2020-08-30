@@ -5,7 +5,7 @@ go get github.com/axw/gocov/gocov
 go get github.com/AlekSi/gocov-xml
 go get -u github.com/matm/gocov-html
 
-OUTPUT_DIR=./../test_results
+OUTPUT_DIR=./../coverage
 
 # Run tests and generate coverage
 go test -v -coverpkg=$(go list ./... | grep -v "test" | grep -v "mocks" | awk '{print $1}' | paste -s -d ,) -coverprofile=$OUTPUT_DIR/coverage.txt -covermode=atomic ./test/... > $OUTPUT_DIR/results.txt

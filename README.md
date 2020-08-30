@@ -26,13 +26,13 @@ go test -v ./test/...
 
 ```bash
 # Generate code coverage report of Lumiere app
-mkdir test_results
+mkdir coverage
 cd src
 ../scripts/generate_code_coverage.sh
 
 # Upon completion you can then access the coverage artifacts in test_results
 # if on windows
-start chrome ../test_results/index.html
+start chrome ../coverage/index.html
 ```
 
 ## Docker Compose
@@ -95,3 +95,14 @@ curl -X PUT localhost:5000/v1/api/account/transfer \
 # ...
 new_user_x your transfer of $250.00 at 2020.08.30 08:10:47 to user5 is complete
 ```
+
+## Prometheus
+
+Upon running `docker-compose up --build` browsing to `[http://localhost:9090](http://localhost:9090)` will open the Prometheus UI
+
+Here you may inspect multiple instruments observing the server API
+
+Notable instruments are:
+
+- **lumiere_request_duration_seconds_bucket**: Histrogram showing cumulative request durations for each server api endpoint and status code
+- **promhttp_metric_handler_requests_total**: Counter showing total requests resulting in 200, 500 or 503 status codes
