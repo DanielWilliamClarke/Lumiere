@@ -8,6 +8,9 @@ import (
 	"github.com/gofiber/fiber"
 	"github.com/gofiber/logger"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/valyala/fasthttp/fasthttpadaptor"
+
 	"dwc.com/lumiere/account"
 	"dwc.com/lumiere/mongo"
 	"dwc.com/lumiere/user"
@@ -45,10 +48,15 @@ func main() {
 
 	// Set up API
 	app := fiber.New()
-	api := app.Group("/v1/api", logger.New())
 
+	// Set up prometheus instrumentation
+	prometheus := fasthttpadaptor.NewFastHTTPHandler(promhttp.Handler())
+	app.Get("/metrics", func(c *fiber.Ctx) { prometheus(c.Fasthttp) })
+
+	api := app.Group("/v1/api", logger.New())
 	api.Get("/svcstatus", func(c *fiber.Ctx) { c.Status(http.StatusOK).Send("Ok") })
 
+	// Setup user routes
 	api.
 		Group("/user").
 		Post("/register", user.UserRegisterRoute{
@@ -56,6 +64,7 @@ func main() {
 			Generator:  utils.CodeGenerator{},
 		}.Post)
 
+	// Set up account routes
 	api.
 		Group("/account", user.UserAuthMiddleware{DataAccess: mongoClient}.Auth).
 		Get("/balance", account.AccountBalanceRoute{}.GetBalance).

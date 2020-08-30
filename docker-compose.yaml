@@ -29,6 +29,13 @@ services:
     env_file:
       - ./mongo/.env
 
+  prometheus:
+    image: quay.io/prometheus/prometheus:latest
+    ports:
+      - 9090:9090
+    volumes:
+      - "./prometheus.yaml:/etc/prometheus/prometheus.yml"
+
 volumes:
   mongodb:
 
