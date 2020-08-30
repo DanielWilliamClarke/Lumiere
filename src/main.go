@@ -51,22 +51,21 @@ func main() {
 
 	// Set up prometheus instrumentation
 	prometheus := fasthttpadaptor.NewFastHTTPHandler(promhttp.Handler())
-	app.Get("/metrics", func(c *fiber.Ctx) { prometheus(c.Fasthttp) })
+	app.Get("/metrics", func(c *fiber.Ctx) {
+		prometheus(c.Fasthttp)
+	})
 
-	api := app.Group("/v1/api", logger.New())
-	api.Get("/svcstatus", func(c *fiber.Ctx) { c.Status(http.StatusOK).Send("Ok") })
+	api := app.Group("/v1/api", logger.New(), utils.RequestDurationMonitor())
+	api.Get("/svcstatus", func(c *fiber.Ctx) {
+		c.Status(http.StatusOK).Send("Ok")
+	})
 
 	// Setup user routes
-	api.
-		Group("/user").
-		Post("/register", user.UserRegisterRoute{
-			DataAccess: mongoClient,
-			Generator:  utils.CodeGenerator{},
-		}.Post)
+	api.Group("/user").
+		Post("/register", user.UserRegisterRoute{DataAccess: mongoClient, Generator: utils.CodeGenerator{}}.Post)
 
 	// Set up account routes
-	api.
-		Group("/account", user.UserAuthMiddleware{DataAccess: mongoClient}.Auth).
+	api.Group("/account", user.UserAuthMiddleware{DataAccess: mongoClient}.Auth).
 		Get("/balance", account.AccountBalanceRoute{}.GetBalance).
 		Get("/transactions", account.AccountBalanceRoute{}.GetTransactions).
 		Put("/transfer", account.AccountTransferRoute{DataAccess: mongoClient}.PutTransfer)
