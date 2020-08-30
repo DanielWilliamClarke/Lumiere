@@ -93,5 +93,5 @@ curl -X PUT localhost:5000/v1/api/account/transfer \
   -H 'Content-Type: application/json' \
   -d '{"to": "user5", "amount":250}'
 # ...
-[{"Amount":1000000,"To":"21632","From":"system","Date":"2020.08.30 08:15:08"}]
+new_user_x your transfer of $250.00 at 2020.08.30 08:10:47 to user5 is complete
 ```
