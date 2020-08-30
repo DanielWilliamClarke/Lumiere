@@ -98,7 +98,7 @@ new_user_x your transfer of $250.00 at 2020.08.30 08:10:47 to user5 is complete
 
 ## Prometheus
 
-Upon running `docker-compose up --build` browsing to `[http://localhost:9090](http://localhost:9090)` will open the Prometheus UI
+Upon running `docker-compose up --build` browsing to [http://localhost:9090](http://localhost:9090) will open the Prometheus UI
 
 Here you may inspect multiple instruments observing the server API
 
