@@ -67,11 +67,11 @@ Ok
 
 **To auth with the service you must pass the Credential in the `Authorization` header**
 
-## Postman
+### Postman
 
 You may import both the lumiere postman collection and environment in `./e2e` into Postman to run the requests and run E2E tests
 
-## Service Status
+### Service Status
 
 ```bash
 # You may ping the service to ensure it is up
@@ -80,7 +80,7 @@ curl localhost:5000/v1/api/svcstatus
 Service Ok
 ```
 
-## User Authorization
+### User Authorization
 
 This app implements basic authorization, in reality we would be storing credentials securely,
 We could also require the user to pass a signed JWT and authenticate with a trusted external service to ensure the user is entitled to access the account encoded in the JWT
