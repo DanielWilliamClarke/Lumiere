@@ -124,6 +124,12 @@ curl -X GET localhost:5000/v1/api/account/transactions -H 'Authorization: new_cr
 
 A user may transfer between any users in the system (except themselves)
 
+With this current implementation of the service, there is currently no way to add money into the system except by adding new users. 
+
+A user can go into extreme debt, and can transfer more money than they actually have. 
+
+A feature could be added to provide a user with am agreed upon overdraft limit, or the system can issue loans to users to facilitate cash transfers
+
 ```bash
 # One must pass an Authorization header to auth with the API
 curl -X PUT localhost:5000/v1/api/account/transfer \
