@@ -20,7 +20,7 @@ type UserRegisterRoute struct {
 	Generator  utils.ICodeGenerator
 }
 
-type registerOutput struct {
+type RegisterOutput struct {
 	UserID     string `json:"userID"`
 	Username   string `json:"username"`
 	Credential string `json:"credential"`
@@ -89,7 +89,7 @@ func (a UserRegisterRoute) Post(c *fiber.Ctx) {
 		return
 	}
 
-	c.Status(http.StatusOK).JSON(registerOutput{
+	c.Status(http.StatusOK).JSON(RegisterOutput{
 		UserID:     userID,
 		Username:   body.Username,
 		Credential: auth,

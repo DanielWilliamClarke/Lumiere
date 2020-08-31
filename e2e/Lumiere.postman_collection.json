@@ -1,0 +1,160 @@
+{
+	"info": {
+		"_postman_id": "20965aa2-4f99-43f0-b2fb-12e2130ba2d4",
+		"name": "Lumiere",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "svcstatus",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "3d2bf1e8-35f5-49ff-a014-edee07566a0f",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"pm.test(\"Response time is less than 200ms\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/v1/api/svcstatus",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"svcstatus"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "register",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "a76c9982-4ae0-4825-93f3-114c767b2252",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"   pm.expect(pm.response.code).to.be.below(205);\r",
+							"});\r",
+							"pm.test(\"Response time is less than 200ms\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"test_user\",\r\n    \"amount\": 1000\r\n}"
+				},
+				"url": {
+					"raw": "{{url}}/v1/api/user/register",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"user",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "balance",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "auth1",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url}}/v1/api/account/balance",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"account",
+						"balance"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "transactions",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": ""
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "transfer",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "auth1",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"to\": \"user2\",\r\n    \"amount\":250,\r\n    \"message\": \"Postman made me do it\"\r\n}"
+				},
+				"url": {
+					"raw": "{{url}}/v1/api/account/transfer",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"account",
+						"transfer"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}

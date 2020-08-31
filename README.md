@@ -67,6 +67,19 @@ Ok
 
 **To auth with the service you must pass the Credential in the `Authorization` header**
 
+### Postman
+
+**You may import both the lumiere postman collection and environment into Postman to run the requests and run E2E tests**
+
+### Service Status
+
+```bash
+# You may ping the service to ensure it is up
+curl localhost:5000/v1/api/svcstatus
+# ...
+Service Ok
+```
+
 ### Registering a new user
 
 ```bash
@@ -103,7 +116,7 @@ A user may transfer between any users in the system (except themselves)
 ```bash
 # One must pass an Authorization header to auth with the API
 curl -X PUT localhost:5000/v1/api/account/transfer \
-  -H 'Authorization: new_credential_code' \
+  -H 'Authorization: 94d2c422acd208a0' \
   -H 'Content-Type: application/json' \
   -d '{"to": "user5", "amount":250, "message": "from me to you!"}'
 # ...
