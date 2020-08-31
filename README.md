@@ -67,11 +67,11 @@ Ok
 
 **To auth with the service you must pass the Credential in the `Authorization` header**
 
-### Postman
+## Postman
 
-**You may import both the lumiere postman collection and environment into Postman to run the requests and run E2E tests**
+You may import both the lumiere postman collection and environment in `./e2e` into Postman to run the requests and run E2E tests
 
-### Service Status
+## Service Status
 
 ```bash
 # You may ping the service to ensure it is up
@@ -80,7 +80,31 @@ curl localhost:5000/v1/api/svcstatus
 Service Ok
 ```
 
+## User Authorization
+
+This app implements basic authorization, in reality we would be storing credentials securely,
+We could also require the user to pass a signed JWT and authenticate with a trusted external service to ensure the user is entitled to access the account encoded in the JWT
+
+```bash
+# One must pass an Authorization header to auth with the API
+curl -X GET localhost:5000/v1/api/account/balance -H 'Authorization: auth1'
+# ...
+200: user1 ...
+
+# incorrect authorization
+curl -X GET localhost:5000/v1/api/account/balance -H 'Authorization: incorrect_auth'
+# ...
+403: User not authorized
+
+# missing authorization
+curl -X GET localhost:5000/v1/api/account/balance
+# ...
+403: User not authorized
+```
+
 ### Registering a new user
+
+Registration of a new user does not require an `Authorization` header
 
 ```bash
 # using this endpoint to operate the API is optional
@@ -88,7 +112,7 @@ curl -X POST localhost:5000/v1/api/user/register \
   -H 'Content-Type: application/json' \
   -d '{"username": "new_user_x", "amount":100000}'
 # ...
-{"userID":"21632","username":"new_user_x","credential":"new_credential_code"}
+200: {"userID":"21632","username":"new_user_x","credential":"new_credential_code"}
 ```
 
 ### Reading Balance
@@ -97,7 +121,7 @@ curl -X POST localhost:5000/v1/api/user/register \
 # One must pass an Authorization header to auth with the API
 curl -X GET localhost:5000/v1/api/account/balance -H 'Authorization: new_credential_code'
 # ...
-new_user_x your current balance at 2020.08.30 08:17:18 is $1000000.00
+200: new_user_x your current balance at 2020.08.30 08:17:18 is $1000000.00
 ```
 
 ### Showing Transactions
@@ -106,12 +130,18 @@ new_user_x your current balance at 2020.08.30 08:17:18 is $1000000.00
 # One must pass an Authorization header to auth with the API
 curl -X GET localhost:5000/v1/api/account/transactions -H 'Authorization: new_credential_code'
 # ...
-[{"Amount":1000000,"To":"21632","From":"system","Date":"2020.08.30 08:15:08", "message": "Initial funds"}]
+200: [{"Amount":1000000,"To":"21632","From":"system","Date":"2020.08.30 08:15:08", "message": "Initial funds"}]
 ```
 
 ### Transfer to other user
 
 A user may transfer between any users in the system (except themselves)
+
+With this current implementation of the service, there is currently no way to add money into the system except by adding new users.
+
+A user can go into extreme debt, and can transfer more money than they actually have.
+
+A feature could be added to provide a user with an agreed upon overdraft limit, or the system can issue loans to users to facilitate cash transfers
 
 ```bash
 # One must pass an Authorization header to auth with the API
@@ -120,7 +150,7 @@ curl -X PUT localhost:5000/v1/api/account/transfer \
   -H 'Content-Type: application/json' \
   -d '{"to": "user5", "amount":250, "message": "from me to you!"}'
 # ...
-new_user_x your transfer of $250.00 at 2020.08.30 08:10:47 to user5 is complete
+200: new_user_x your transfer of $250.00 at 2020.08.30 08:10:47 to user5 is complete
 ```
 
 ## Prometheus
@@ -133,6 +163,12 @@ Notable instruments are:
 
 - **lumiere_request_duration_seconds_bucket**: Histrogram showing cumulative request durations for each server api endpoint and status code
 - **promhttp_metric_handler_requests_total**: Counter showing total requests resulting in 200, 500 or 503 status codes
+
+Future instrumentation could include:
+
+- Capturing the number of authorized vs unauthorized requests for each service endpoint
+- System resource usage per service endpoint
+- Counting the total number of errors logged per service endpoint
 
 ## Logging
 
