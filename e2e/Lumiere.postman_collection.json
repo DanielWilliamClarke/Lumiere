@@ -49,8 +49,8 @@
 					"script": {
 						"id": "a76c9982-4ae0-4825-93f3-114c767b2252",
 						"exec": [
-							"pm.test(\"Status code is 200\", function () {\r",
-							"   pm.expect(pm.response.code).to.be.below(205);\r",
+							"pm.test(\"Status code is 200|204\", function () {\r",
+							"   pm.expect(pm.response.code).to.be.below(400);\r",
 							"});\r",
 							"pm.test(\"Response time is less than 200ms\", function () {\r",
 							"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
@@ -90,6 +90,23 @@
 		},
 		{
 			"name": "balance",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "a35afbda-2926-402b-9daf-5d1c93c31e4b",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"pm.test(\"Response time is less than 200ms\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"method": "GET",
 				"header": [
@@ -116,23 +133,77 @@
 		},
 		{
 			"name": "transactions",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "3f654aea-93ff-447c-9ce7-e373c8a60ea3",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"pm.test(\"Response time is less than 200ms\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "auth1",
+						"type": "text"
+					}
+				],
 				"url": {
-					"raw": ""
+					"raw": "{{url}}/v1/api/account/transactions",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"account",
+						"transactions"
+					]
 				}
 			},
 			"response": []
 		},
 		{
 			"name": "transfer",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "96e46aff-b032-4c4b-9c21-8bc683732155",
+						"exec": [
+							"pm.test(\"Response time is less than 200ms\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+							"});\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"method": "PUT",
 				"header": [
 					{
 						"key": "Authorization",
 						"value": "auth1",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
 						"type": "text"
 					}
 				],
