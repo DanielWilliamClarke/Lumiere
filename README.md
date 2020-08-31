@@ -69,6 +69,9 @@ Ok
 
 ## User Authorization
 
+This app implements basic authorization, in reality we would be storeing credentials securely,
+We could also require the user to pass a signed JWT and authenticate with a trusted external service to ensure the user is entitled to access the account encoded in the JWT
+
 ```bash
 # One must pass an Authorization header to auth with the API
 curl -X GET localhost:5000/v1/api/account/balance -H 'Authorization: auth1'
