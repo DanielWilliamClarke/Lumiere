@@ -69,7 +69,7 @@ Ok
 
 ## User Authorization
 
-This app implements basic authorization, in reality we would be storeing credentials securely,
+This app implements basic authorization, in reality we would be storing credentials securely,
 We could also require the user to pass a signed JWT and authenticate with a trusted external service to ensure the user is entitled to access the account encoded in the JWT
 
 ```bash
@@ -128,7 +128,7 @@ With this current implementation of the service, there is currently no way to ad
 
 A user can go into extreme debt, and can transfer more money than they actually have. 
 
-A feature could be added to provide a user with am agreed upon overdraft limit, or the system can issue loans to users to facilitate cash transfers
+A feature could be added to provide a user with an agreed upon overdraft limit, or the system can issue loans to users to facilitate cash transfers
 
 ```bash
 # One must pass an Authorization header to auth with the API
