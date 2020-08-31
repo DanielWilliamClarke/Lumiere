@@ -142,6 +142,13 @@ Notable instruments are:
 - **lumiere_request_duration_seconds_bucket**: Histrogram showing cumulative request durations for each server api endpoint and status code
 - **promhttp_metric_handler_requests_total**: Counter showing total requests resulting in 200, 500 or 503 status codes
 
+Future instrumentation could include:
+
+- Capturing the number of authorized vs unauthorized requests for each service endpoint 
+- System resource usage per service endpoint
+- Counting the total number of errors logged per service endpoint
+- 
+
 ## Logging
 
 All messages are logged to console,
