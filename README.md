@@ -120,3 +120,11 @@ Notable instruments are:
 
 - **lumiere_request_duration_seconds_bucket**: Histrogram showing cumulative request durations for each server api endpoint and status code
 - **promhttp_metric_handler_requests_total**: Counter showing total requests resulting in 200, 500 or 503 status codes
+
+## Logging
+
+All messages are logged to console,
+if deployed in Google Cloud Platform, all logs would be sent to **Stackdriver**
+All Errors are logged to **stderr**
+
+For downstream log aggregation we could use something like **Loki**: [Loki Github](https://github.com/grafana/loki)
