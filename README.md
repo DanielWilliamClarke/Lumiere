@@ -67,7 +67,28 @@ Ok
 
 **To auth with the service you must pass the Credential in the `Authorization` header**
 
+## User Authorization
+
+```bash
+# One must pass an Authorization header to auth with the API
+curl -X GET localhost:5000/v1/api/account/balance -H 'Authorization: auth1'
+# ...
+200: user1 ...
+
+# incorrect authorization
+curl -X GET localhost:5000/v1/api/account/balance -H 'Authorization: incorrect_auth'
+# ...
+403: User not authorized
+
+# missing authorization
+curl -X GET localhost:5000/v1/api/account/balance
+# ...
+403: User not authorized
+```
+
 ### Registering a new user
+
+Registration of a new user does not require an `Authorization` header
 
 ```bash
 # using this endpoint to operate the API is optional
@@ -75,7 +96,7 @@ curl -X POST localhost:5000/v1/api/user/register \
   -H 'Content-Type: application/json' \
   -d '{"username": "new_user_x", "amount":100000}'
 # ...
-{"userID":"21632","username":"new_user_x","credential":"new_credential_code"}
+200: {"userID":"21632","username":"new_user_x","credential":"new_credential_code"}
 ```
 
 ### Reading Balance
@@ -84,7 +105,7 @@ curl -X POST localhost:5000/v1/api/user/register \
 # One must pass an Authorization header to auth with the API
 curl -X GET localhost:5000/v1/api/account/balance -H 'Authorization: new_credential_code'
 # ...
-new_user_x your current balance at 2020.08.30 08:17:18 is $1000000.00
+200: new_user_x your current balance at 2020.08.30 08:17:18 is $1000000.00
 ```
 
 ### Showing Transactions
@@ -93,7 +114,7 @@ new_user_x your current balance at 2020.08.30 08:17:18 is $1000000.00
 # One must pass an Authorization header to auth with the API
 curl -X GET localhost:5000/v1/api/account/transactions -H 'Authorization: new_credential_code'
 # ...
-[{"Amount":1000000,"To":"21632","From":"system","Date":"2020.08.30 08:15:08", "message": "Initial funds"}]
+200: [{"Amount":1000000,"To":"21632","From":"system","Date":"2020.08.30 08:15:08", "message": "Initial funds"}]
 ```
 
 ### Transfer to other user
@@ -107,7 +128,7 @@ curl -X PUT localhost:5000/v1/api/account/transfer \
   -H 'Content-Type: application/json' \
   -d '{"to": "user5", "amount":250, "message": "from me to you!"}'
 # ...
-new_user_x your transfer of $250.00 at 2020.08.30 08:10:47 to user5 is complete
+200: new_user_x your transfer of $250.00 at 2020.08.30 08:10:47 to user5 is complete
 ```
 
 ## Prometheus
