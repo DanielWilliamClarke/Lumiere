@@ -61,14 +61,14 @@ func main() {
 	})
 
 	// Setup user routes
-	api.Group("/user").
-		Post("/register", user.UserRegisterRoute{DataAccess: mongoClient, Generator: utils.CodeGenerator{}}.Post)
+	userApi := api.Group("/user")
+	userApi.Post("/register", user.UserRegisterRoute{DataAccess: mongoClient, Generator: utils.CodeGenerator{}}.Post)
 
 	// Set up account routes
-	api.Group("/account", user.UserAuthMiddleware{DataAccess: mongoClient}.Auth).
-		Get("/balance", account.AccountBalanceRoute{}.GetBalance).
-		Get("/transactions", account.AccountBalanceRoute{}.GetTransactions).
-		Put("/transfer", account.AccountTransferRoute{DataAccess: mongoClient}.PutTransfer)
+	accountApi := api.Group("/account", user.UserAuthMiddleware{DataAccess: mongoClient}.Auth)
+	accountApi.Get("/balance", account.AccountBalanceRoute{}.GetBalance)
+	accountApi.Get("/transactions", account.AccountBalanceRoute{}.GetTransactions)
+	accountApi.Put("/transfer", account.AccountTransferRoute{DataAccess: mongoClient}.PutTransfer)
 
 	err = app.Listen(config.Port)
 	if err != nil {
