@@ -23,7 +23,7 @@ func RunRequestDurationTest() *http.Response {
 	app := fiber.New()
 	app.Use(utils.RequestDurationMonitor()).
 		Get("/", func(c *fiber.Ctx) {
-			c.Status(200).Send("Authorized")
+			c.Status(http.StatusOK).Send("Authorized")
 		})
 
 	// Run Test
@@ -34,7 +34,7 @@ func RunRequestDurationTest() *http.Response {
 
 func Test_RequestDurationMiddlewareSucceeds(t *testing.T) {
 	resp := RunRequestDurationTest()
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		t.Error("Expected status 200")
 	}
 }

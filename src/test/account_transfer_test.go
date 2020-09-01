@@ -162,7 +162,7 @@ func Test_AccountTransferSucceeds(t *testing.T) {
 	}
 
 	resp := RunTransferTest(mockClient, fromAccount, body)
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		t.Error("Expected status 200")
 	}
 }
@@ -190,7 +190,7 @@ func Test_AccountTransferFailsOnReceiptientUpdate(t *testing.T) {
 	}
 
 	resp := RunTransferTest(mockClient, fromAccount, body)
-	if resp.StatusCode != 500 {
+	if resp.StatusCode != http.StatusInternalServerError {
 		t.Error("Expected status 500")
 	}
 }
@@ -218,7 +218,7 @@ func Test_AccountTransferFailsOnCurrentUserUpdate(t *testing.T) {
 	}
 
 	resp := RunTransferTest(mockClient, fromAccount, body)
-	if resp.StatusCode != 500 {
+	if resp.StatusCode != http.StatusInternalServerError {
 		t.Error("Expected status 500")
 	}
 }
@@ -246,7 +246,7 @@ func Test_AccountTransferFailsOnReceiptientFetch(t *testing.T) {
 	}
 
 	resp := RunTransferTest(mockClient, fromAccount, body)
-	if resp.StatusCode != 404 {
+	if resp.StatusCode != http.StatusNotFound {
 		t.Error("Expected status 404")
 	}
 }
@@ -273,7 +273,7 @@ func Test_AccountTransferFailsOnUnaryTransfer(t *testing.T) {
 	}
 
 	resp := RunTransferTest(mockClient, fromAccount, body)
-	if resp.StatusCode != 404 {
+	if resp.StatusCode != http.StatusNotFound {
 		t.Error("Expected status 404")
 	}
 }
@@ -293,7 +293,7 @@ func Test_AccountTransferFailsOnBodyParse(t *testing.T) {
 	defer ctrl.Finish()
 
 	resp := RunTransferTest(mockClient, fromAccount, []byte{})
-	if resp.StatusCode != 400 {
+	if resp.StatusCode != http.StatusBadRequest {
 		t.Error("Expected status 400")
 	}
 }
@@ -312,7 +312,7 @@ func Test_AccountTransferFailsAuthAccountNil(t *testing.T) {
 	defer ctrl.Finish()
 
 	resp := RunTransferTest(mockClient, nil, []byte{})
-	if resp.StatusCode != 500 {
+	if resp.StatusCode != http.StatusInternalServerError {
 		t.Error("Expected status 500")
 	}
 }

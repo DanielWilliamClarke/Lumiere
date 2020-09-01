@@ -225,6 +225,52 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "unauthorized",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "2d75fc60-75a0-4ec7-99b6-13e1ef8ce086",
+						"exec": [
+							"pm.test(\"Status code is 401\", function () {\r",
+							"    pm.response.to.have.status(401);\r",
+							"});\r",
+							"pm.test(\"Response time is less than 200ms\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+							"});\r",
+							"pm.test(\"Body matches string\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"User not Authorized\");\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "incorrect-auth",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url}}/v1/api/account/balance",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"v1",
+						"api",
+						"account",
+						"balance"
+					]
+				}
+			},
+			"response": []
 		}
 	],
 	"protocolProfileBehavior": {}

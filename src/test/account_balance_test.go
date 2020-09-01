@@ -62,14 +62,14 @@ func CreateDummyAccountDate() *model.Account {
 func Test_AccountBalanceCanBeReturned(t *testing.T) {
 	account := CreateDummyAccountDate()
 	resp := RunBalanceTest("b", account)
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		t.Error("Expected status 200")
 	}
 }
 
 func Test_AccountBalanceAuthUserFailure(t *testing.T) {
 	resp := RunBalanceTest("b", nil)
-	if resp.StatusCode != 500 {
+	if resp.StatusCode != http.StatusInternalServerError {
 		t.Error("Expected status 500")
 	}
 }
@@ -77,14 +77,14 @@ func Test_AccountBalanceAuthUserFailure(t *testing.T) {
 func Test_AccountTransactionsCanBeReturned(t *testing.T) {
 	account := CreateDummyAccountDate()
 	resp := RunBalanceTest("t", account)
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		t.Error("Expected status 200")
 	}
 }
 
 func Test_AccountTransactionsAuthUserFailure(t *testing.T) {
 	resp := RunBalanceTest("t", nil)
-	if resp.StatusCode != 500 {
+	if resp.StatusCode != http.StatusInternalServerError {
 		t.Error("Expected status 500")
 	}
 }

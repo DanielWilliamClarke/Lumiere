@@ -94,12 +94,12 @@ curl -X GET localhost:5000/v1/api/account/balance -H 'Authorization: auth1'
 # incorrect authorization
 curl -X GET localhost:5000/v1/api/account/balance -H 'Authorization: incorrect_auth'
 # ...
-403: User not authorized
+401: User not authorized
 
 # missing authorization
 curl -X GET localhost:5000/v1/api/account/balance
 # ...
-403: User not authorized
+401: User not authorized
 ```
 
 ### Registering a new user

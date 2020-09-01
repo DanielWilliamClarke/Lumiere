@@ -33,7 +33,7 @@ func RunAuthTest(mockClient lMongo.IMongoClient, auth string) *http.Response {
 	app := fiber.New()
 	app.Use(user.UserAuthMiddleware{DataAccess: mockClient}.Auth).
 		Get("/", func(c *fiber.Ctx) {
-			c.Status(200).Send("Authorized")
+			c.Status(http.StatusOK).Send("Authorized")
 		})
 
 	// Run Test
@@ -64,7 +64,7 @@ func Test_UserCanBeAuthorized(t *testing.T) {
 	defer ctrl.Finish()
 
 	resp := RunAuthTest(mockClient, "test")
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		t.Error("Expected status 200")
 	}
 }
@@ -75,8 +75,8 @@ func Test_UserCanBeUnauthorized(t *testing.T) {
 	defer ctrl.Finish()
 
 	resp := RunAuthTest(mockClient, "test")
-	if resp.StatusCode != 403 {
-		t.Error("Expected status 403")
+	if resp.StatusCode != http.StatusUnauthorized {
+		t.Error("Expected status 401")
 	}
 }
 
@@ -86,7 +86,7 @@ func Test_UserIsUnauthorizedWithEmptyUserCode(t *testing.T) {
 	defer ctrl.Finish()
 
 	resp := RunAuthTest(mockClient, "")
-	if resp.StatusCode != 403 {
-		t.Error("Expected status 403")
+	if resp.StatusCode != http.StatusUnauthorized {
+		t.Error("Expected status 401")
 	}
 }
