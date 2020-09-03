@@ -16,6 +16,7 @@ services:
       - .env
     environment:
       - MONGO_HOST=mongo # override the mongo host
+      - WAIT_HOSTS=mongo:27017
 
   mongo:
     container_name: mongo
